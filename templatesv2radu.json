@@ -3,6 +3,21 @@
   "templates": [
     {
       "type": 1,
+      "title": "PHP 8 cu Apache si Mysqli",
+      "description": "php8-apache-mysqli-radu-2023",
+      "categories": ["docker","development", "project-management","sibanc"],
+      "platform": "linux",
+      "logo": "https://portainer-io-assets.sfo2.digitaloceanspaces.com/logos/registry.png",
+      "image": "php8-apache-mysqli-radu-2023",
+      "ports": ["80/tcp", "443/tcp"],
+      "volumes": [
+        {
+          "container": "/var/www/html"
+        }
+      ]
+    },
+    {
+      "type": 1,
       "title": "Registry",
       "description": "Docker image registry",
       "categories": ["docker"],
