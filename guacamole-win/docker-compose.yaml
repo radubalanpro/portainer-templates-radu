@@ -1,0 +1,74 @@
+
+# guacamole/guacd - ofera guacd daemon,cu suport pentru VNC, RDP, SSH, telnet, si Kubernetes.
+# guacamole/guacamole - ofera Aplicatia Web Guacamolecare ruleaza in Tomcat 8 cu suport pentru WebSocket.
+# Configuratia necesara pentru conectarea la guacd, MySQL, PostgreSQL, LDAP, etc. va fi generata automat cand imaginea porneste bazat pe link-uri Docker sau variabile de environment.
+# mysql sau postgresql - ofera baza de date pe care Guacamole o va folosi pentru autentificare si stocarea configuratiilor conexiunilor.
+
+# Acest exemplu presupune ca folderele de date necesare se afla pe D:/GuacamoleFiles
+
+# Guacamole are nevoie de tabelele din MariaDB sa fie configurate ca sa functioneze, lucru care nu se poate face automat dar se poate face ruland comenzile de mai jos in shell, dupa pornirea stack-ului :
+# docker run --rm guacamole/guacamole /opt/guacamole/bin/initdb.sh --mysql > initdb.sql
+# docker exec -i mariadb mysql -u root --password=rootpw guacamole_db  < initdb.sql 
+# Apoi se reporensc toate 3 containerele 
+# Se acceseaza Guacamole la adresa http://localhost:48080/guacamole/ cu credentialele default guacadmin:guacadmin. 
+
+version: '3.9'
+services:
+  db:
+    image: mariadb
+    restart: unless-stopped
+    container_name: mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpw
+      - MYSQL_DATABASE=guacamole_db
+      - MYSQL_USER=guacamole_user
+      - MYSQL_PASSWORD=guacamolepw
+    volumes:
+      #- /opt/container/mariadb:/var/lib/mysql
+      - /D/GuacamoleFiles/mariadb:/var/lib/mysql
+    ports:
+      - 43306:3306
+    hostname: mariadb
+    # networks:
+    #   - intranet
+
+  guacd:
+    image: guacamole/guacd
+    container_name: guacd
+    hostname: guacd
+    restart: always
+    volumes:
+      #- /opt/container/guacamole/guacd:/etc/guacamole
+      - /D/GuacamoleFiles/guacamole/guacd:/etc/guacamole
+    ports:
+      - 44822:4822
+    # networks:
+    #   - intranet
+
+  guacamole:
+    image: guacamole/guacamole
+    container_name: guacamole
+    hostname: guacamole
+    restart: always
+    volumes:
+      - /opt/container/guacamole/guacamole:/etc/guacamole
+      - /D/GuacamoleFiles/guacamole/guacamole:/etc/guacamole
+    ports:
+      - 48080:8080
+    environment:
+      - GUACD_HOSTNAME=guacd
+      - GUACD_PORT=4822
+      - GUACAMOLE_HOME=/etc/guacamole
+      - MYSQL_HOSTNAME=mariadb
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=guacamole_db
+      - MYSQL_USER=guacamole_user
+      - MYSQL_PASSWORD=guacamolepw
+    # networks:
+    #   - intranet
+
+# networks:
+#   intranet:
+#     external:
+#       name: intranet 
+
